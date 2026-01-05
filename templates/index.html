@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CV Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@400;600;700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='curriculum-vitae.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='curriculum-vitae.png') }}">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <style>
+    :root{--primary:#7c3aed;--primary2:#06b6d4;--bg:#eef3ff;--surface:#ffffff;--text:#0f172a;--muted:#64748b;--border:#e6eaf5;--ring:rgba(124,58,237,.35);--font:'Inter',Segoe UI,Arial,sans-serif}
+    *{box-sizing:border-box}
+    body{font-family:var(--font);margin:0;background:linear-gradient(135deg,#f7f9fc 0%,#eef3ff 100%);color:var(--text)}
+    .hero{background:linear-gradient(135deg,var(--primary) 0%,var(--primary2) 100%);color:#fff;padding:48px 24px}
+    .hero-inner{max-width:960px;margin:0 auto}
+    .hero h1{margin:0;font-size:clamp(28px,4vw+0.5rem,44px);letter-spacing:.5px;line-height:1.1;word-break:break-word;overflow-wrap:anywhere;hyphens:auto}
+    .hero p{margin:8px 0 0;color:#eff3ff;max-width:min(760px,92%);font-size:clamp(14px,1.2vw+0.25rem,18px)}
+    .container{max-width:1100px;margin:-28px auto 40px;background:var(--surface);padding:24px;border-radius:16px;border:1px solid var(--border);box-shadow:0 20px 40px rgba(16,24,40,.08)}
+    section{margin:24px 0;padding:14px 0;border-top:1px solid var(--border)}
+    h2{margin:0 0 12px;font-size:18px;color:var(--text)}
+    label{display:flex;flex-direction:column;font-size:14px;margin:8px 0;color:var(--muted)}
+    input,textarea,select{padding:12px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);transition:all .15s ease}
+    input::placeholder,textarea::placeholder{color:var(--muted)}
+    input,textarea{caret-color:var(--primary)}
+    input:focus,textarea:focus,select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px var(--ring);background:var(--surface)}
+    .primary{background:linear-gradient(135deg,var(--primary) 0%,var(--primary2) 100%);color:#fff;border:none;padding:12px 18px;border-radius:10px;cursor:pointer;font-weight:600;box-shadow:0 8px 20px rgba(124,58,237,.25)}
+    .primary[disabled]{opacity:.6;cursor:not-allowed}
+    .primary:hover{filter:brightness(1.05)}
+    .card{background:var(--surface);border:1px solid var(--border);padding:14px;border-radius:12px;margin:10px 0;box-shadow:0 6px 16px rgba(16,24,40,.06)}
+    button{padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;color:var(--text)}
+    button:hover{filter:brightness(1.05)}
+    button:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px var(--ring)}
+    button:active{transform:scale(.98)}
+    ::selection{background:var(--primary);color:#fff}
+    .row{display:flex;gap:12px;align-items:center}
+    .toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:8px 0 12px}
+    .controls{display:flex;gap:12px;align-items:center}
+    .layout{display:grid;grid-template-columns:1fr 0.9fr;gap:20px}
+    .preview{border:1px solid var(--border);border-radius:12px;padding:18px;background:var(--surface)}
+    .preview h3{margin:0 0 6px}
+    .preview .line{color:var(--muted);font-size:13px;margin-bottom:10px}
+    .badge{display:inline-block;background:linear-gradient(135deg,var(--primary) 0%,var(--primary2) 100%);color:#fff;padding:6px 10px;border-radius:999px;font-size:12px;margin:12px 0}
+    .pv-sec{margin:12px 0}
+    .pv-list{padding-left:18px}
+    .pv-list li{margin:4px 0}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .tpl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+    .tpl-card{position:relative;border:1px solid var(--border);border-radius:10px;padding:10px;cursor:pointer;background:var(--surface)}
+    .tpl-card input{position:absolute;top:8px;left:8px}
+    .tpl-thumb{width:100%;height:60px;border-radius:6px;background:linear-gradient(135deg,#f9fafb,#eef3ff);position:relative;overflow:hidden}
+    .tpl-thumb.sidebar::before{content:"";position:absolute;left:0;top:0;width:24%;height:100%;background:var(--primary)}
+    .tpl-thumb.band::before{content:"";position:absolute;left:0;top:0;width:100%;height:22px;background:var(--primary)}
+    .tpl-thumb.minimal{box-shadow:inset 0 0 0 2px var(--border)}
+    @media (max-width:760px){.grid-2{grid-template-columns:1fr}.layout{grid-template-columns:1fr}.hero{padding:36px 16px}.hero-inner{text-align:center}.container{margin:-20px 12px 24px;padding:16px}}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/dist/docx.js"></script>
+</head>
+<body>
+  <div class="hero">
+    <div class="hero-inner">
+      <h1>CV Generator</h1>
+      <p>Design a standout CV and download it as DOCX or PDF.</p>
+    </div>
+  </div>
+  <div class="container">
+    <div class="toolbar">
+      <div class="controls">
+        <select id="theme">
+          <option value="modern">Modern</option>
+          <option value="ocean">Ocean</option>
+          <option value="sunset">Sunset</option>
+          <option value="emerald">Emerald</option>
+        </select>
+        <select id="font">
+          <option value="Inter">Inter</option>
+          <option value="Poppins">Poppins</option>
+          <option value="Nunito">Nunito</option>
+        </select>
+        <label class="row"><input type="checkbox" id="dark"> Dark Mode</label>
+      </div>
+      <div class="controls">
+        <button type="button" id="save">Save</button>
+        <button type="button" id="clear">Clear</button>
+      </div>
+    </div>
+    <div class="layout">
+    <form id="cv-form">
+      <section>
+        <h2>Core Details</h2>
+        <div class="grid-2">
+          <label>Name<input name="name" required /></label>
+          <label>Target Title<input name="job_title" /></label>
+          <label>Phone<input name="phone" /></label>
+          <label>Email<input name="email" /></label>
+          <label>City/Country<input name="location" /></label>
+          <label>LinkedIn<input name="linkedin" /></label>
+          <label>GitHub<input name="github" /></label>
+          <label>Website<input name="website" /></label>
+        </div>
+      </section>
+
+      <section>
+        <h2>Professional Summary</h2>
+        <textarea name="summary" rows="4" placeholder="2–3 sentences focused on impact"></textarea>
+      </section>
+
+      <section>
+        <h2>Skills</h2>
+        <textarea name="skills" rows="4" placeholder="One skill per line"></textarea>
+      </section>
+
+      <section>
+        <h2>Languages</h2>
+        <textarea name="languages" rows="2" placeholder="One language per line"></textarea>
+      </section>
+
+      <section>
+        <h2>Work Experience</h2>
+        <div id="experiences"></div>
+        <button type="button" id="add-exp">Add Experience</button>
+      </section>
+
+      <section>
+        <h2>Education</h2>
+        <div id="education"></div>
+        <button type="button" id="add-edu">Add Education</button>
+      </section>
+
+      <section>
+        <h2>Projects</h2>
+        <div id="projects"></div>
+        <button type="button" id="add-prj">Add Project</button>
+      </section>
+
+      <section>
+        <h2>Certifications</h2>
+        <div id="certifications"></div>
+        <button type="button" id="add-cert">Add Certification</button>
+      </section>
+
+      <section>
+        <h2>Extras</h2>
+        <div id="extras"></div>
+        <button type="button" id="add-extra">Add Extra</button>
+      </section>
+
+      <section>
+        <h2>References</h2>
+        <textarea name="references" rows="3" placeholder="Names/contacts or 'Available on request'"></textarea>
+      </section>
+
+      <section>
+        <h2 title="Choose export format (DOCX/PDF) and generate">Output</h2>
+        <div class="row">
+          <label><input type="radio" name="output_format" value="docx" checked /> DOCX</label>
+          <label><input type="radio" name="output_format" value="pdf" /> PDF</label>
+          <button type="submit" class="primary">Generate</button>
+        </div>
+        <div class="tpl-grid" id="tpl-choices">
+          <label class="tpl-card">
+            <input type="radio" name="template" value="sidebar" checked />
+            <div class="tpl-thumb sidebar"></div>
+            <div style="margin-top:6px;font-size:12px;color:var(--muted)">Sidebar</div>
+          </label>
+          <label class="tpl-card">
+            <input type="radio" name="template" value="band" />
+            <div class="tpl-thumb band"></div>
+            <div style="margin-top:6px;font-size:12px;color:var(--muted)">Header Band</div>
+          </label>
+          <label class="tpl-card">
+            <input type="radio" name="template" value="minimal" />
+            <div class="tpl-thumb minimal"></div>
+            <div style="margin-top:6px;font-size:12px;color:var(--muted)">Minimal</div>
+          </label>
+        </div>
+      </section>
+
+      <input type="hidden" name="experiences_json" />
+      <input type="hidden" name="education_json" />
+      <input type="hidden" name="projects_json" />
+      <input type="hidden" name="certifications_json" />
+      <input type="hidden" name="extras_json" />
+
+    </form>
+    <div id="preview" class="preview card"></div>
+    </div>
+  </div>
+
+  <template id="tmpl-exp">
+    <div class="card exp-item">
+      <div class="grid-2">
+        <label>Job Title<input /></label>
+        <label>Company<input /></label>
+        <label>Location<input /></label>
+        <label>Dates<input placeholder="Jan 2023 – Present" /></label>
+      </div>
+      <label>Impact bullets<textarea rows="4" placeholder="One bullet per line"></textarea></label>
+      <button type="button" class="remove">Remove</button>
+    </div>
+  </template>
+
+  <template id="tmpl-edu">
+    <div class="card edu-item">
+      <div class="grid-2">
+        <label>Degree<input /></label>
+        <label>Institution<input /></label>
+        <label>Location<input /></label>
+        <label>Dates<input placeholder="2019 – 2023" /></label>
+      </div>
+      <button type="button" class="remove">Remove</button>
+    </div>
+  </template>
+
+  <template id="tmpl-prj">
+    <div class="card prj-item">
+      <div class="grid-2">
+        <label>Name<input /></label>
+        <label>Tech Stack<input placeholder="React, Node, PostgreSQL" /></label>
+        <label>Link<input placeholder="https://..." /></label>
+      </div>
+      <label>Highlights<textarea rows="3" placeholder="One bullet per line"></textarea></label>
+      <button type="button" class="remove">Remove</button>
+    </div>
+  </template>
+
+  <template id="tmpl-cert">
+    <div class="card cert-item">
+      <label>Certification<input placeholder="AWS Certified Cloud Practitioner (2024)" /></label>
+      <button type="button" class="remove">Remove</button>
+    </div>
+  </template>
+
+  <template id="tmpl-extra">
+    <div class="card extra-item">
+      <label>Extra<input placeholder="Volunteer, IEEE Member, Publication" /></label>
+      <button type="button" class="remove">Remove</button>
+    </div>
+  </template>
+
+  <script>
+    const themes = {
+      modern:{primary:'#7c3aed',primary2:'#06b6d4',bg:'#eef3ff',surface:'#ffffff',text:'#0f172a',muted:'#64748b',border:'#e6eaf5'},
+      ocean:{primary:'#2563eb',primary2:'#22d3ee',bg:'#eaf2ff',surface:'#ffffff',text:'#0b1220',muted:'#5b6b85',border:'#dbe5ff'},
+      sunset:{primary:'#f97316',primary2:'#ef4444',bg:'#fff1e6',surface:'#ffffff',text:'#20110b',muted:'#7a5e4a',border:'#ffe0c2'},
+      emerald:{primary:'#10b981',primary2:'#14b8a6',bg:'#e6fff7',surface:'#ffffff',text:'#0b1b14',muted:'#4b7264',border:'#c9f2e5'}
+    };
+    function applyTheme(name, dark){
+      const t = themes[name]||themes.modern;
+      let bg=t.bg,surface=t.surface,text=t.text,muted=t.muted,border=t.border,ring;
+      if(dark){bg='#0b1220';surface='#0f172a';text='#e5e7eb';muted='#c7d2e6';border='#1f2a44'}
+      ring = t.primary+'59';
+      const r=document.documentElement.style;
+      r.setProperty('--primary', t.primary);
+      r.setProperty('--primary2', t.primary2);
+      r.setProperty('--bg', bg);
+      r.setProperty('--surface', surface);
+      r.setProperty('--text', text);
+      r.setProperty('--muted', muted);
+      r.setProperty('--border', border);
+      r.setProperty('--ring', ring);
+      document.body.style.background = dark ? 'linear-gradient(135deg,#0a0f1c 0%,#0b1220 100%)' : 'linear-gradient(135deg,#f7f9fc 0%,#eef3ff 100%)';
+    }
+    function setFont(f){
+      document.documentElement.style.setProperty('--font', `'${f}',Segoe UI,Arial,sans-serif`);
+    }
+    function renderPreview(data){
+      const contacts=['phone','email','location','linkedin','github','website'].map(k=>data[k]).filter(Boolean).join(' | ');
+      const s = [];
+      s.push(`<h3>${(data.name||'').toUpperCase()}</h3>`);
+      if(data.job_title) s.push(`<div class="line">${data.job_title}</div>`);
+      if(contacts) s.push(`<div class="line">${contacts}</div>`);
+      if(data.summary) s.push(`<div class="badge">Summary</div><div class="pv-sec">${data.summary.replace(/\n/g,'<br>')}</div>`);
+      if(data.skills&&data.skills.length){s.push(`<div class="badge">Skills</div><ul class="pv-list">${data.skills.map(x=>`<li>${x}</li>`).join('')}</ul>`)}
+      if(data.experiences&&data.experiences.length){s.push(`<div class="badge">Work Experience</div>`);
+        data.experiences.forEach(exp=>{
+          const head=[exp.title,exp.company].filter(Boolean).join(' | ');
+          const meta=[exp.location,exp.dates].filter(Boolean).join(' | ');
+          s.push(`<div class="pv-sec"><strong>${head}</strong>${meta?`<div class="line">${meta}</div>`:''}${(exp.bullets||[]).length?`<ul class="pv-list">${exp.bullets.map(b=>`<li>${b}</li>`).join('')}</ul>`:''}</div>`);
+        });
+      }
+      if(data.education&&data.education.length){s.push(`<div class="badge">Education</div>`);
+        data.education.forEach(ed=>{
+          const head=[ed.degree,ed.institution].filter(Boolean).join(' | ');
+          const meta=[ed.location,ed.dates].filter(Boolean).join(' | ');
+          s.push(`<div class="pv-sec"><strong>${head}</strong>${meta?`<div class="line">${meta}</div>`:''}</div>`);
+        });
+      }
+      if(data.projects&&data.projects.length){s.push(`<div class="badge">Projects</div>`);
+        data.projects.forEach(pr=>{
+          s.push(`<div class="pv-sec"><strong>${pr.name||'Project'}</strong>${pr.tech?`<div class="line">${pr.tech}</div>`:''}${(pr.bullets||[]).length?`<ul class="pv-list">${pr.bullets.map(b=>`<li>${b}</li>`).join('')}</ul>`:''}${pr.link?`<div class="line">${pr.link}</div>`:''}</div>`);
+        });
+      }
+      if(data.certifications&&data.certifications.length){s.push(`<div class="badge">Certifications</div><ul class="pv-list">${data.certifications.map(c=>`<li>${c}</li>`).join('')}</ul>`)}
+      if(data.extras&&data.extras.length){s.push(`<div class="badge">Extras</div><ul class="pv-list">${data.extras.map(e=>`<li>${e}</li>`).join('')}</ul>`)}
+      if(data.languages&&data.languages.length){s.push(`<div class="badge">Languages</div><div class="pv-sec">${data.languages.join(', ')}</div>`)}
+      if(data.references){s.push(`<div class="badge">References</div><div class="pv-sec">${data.references.replace(/\n/g,'<br>')}</div>`)}
+      document.getElementById('preview').innerHTML = s.join('');
+    }
+    function saveData(data){
+      const pref = {theme:document.getElementById('theme').value,font:document.getElementById('font').value,dark:document.getElementById('dark').checked};
+      localStorage.setItem('cv_data', JSON.stringify({data,pref}));
+    }
+    function loadData(){
+      const raw = localStorage.getItem('cv_data');
+      if(!raw) return;
+      const {data,pref} = JSON.parse(raw);
+      const set = (name,val)=>{const el=document.querySelector(`[name="${name}"]`); if(el) el.value=val||''};
+      ['name','job_title','phone','email','location','linkedin','github','website','summary','references','skills','languages'].forEach(k=>set(k,data[k]||''));
+      const add = (list,tmplId,containerId,fill)=>{
+        list.forEach(item=>{const t=document.getElementById(tmplId);const node=t.content.cloneNode(true);document.getElementById(containerId).appendChild(node);fill(item)});
+      };
+      add(data.experiences||[], 'tmpl-exp','experiences', (item)=>{const last=document.querySelector('#experiences .exp-item:last-child');const inputs=last.querySelectorAll('input');inputs[0].value=item.title||'';inputs[1].value=item.company||'';inputs[2].value=item.location||'';inputs[3].value=item.dates||'';last.querySelector('textarea').value=(item.bullets||[]).join('\n');});
+      add(data.education||[], 'tmpl-edu','education', (item)=>{const last=document.querySelector('#education .edu-item:last-child');const inputs=last.querySelectorAll('input');inputs[0].value=item.degree||'';inputs[1].value=item.institution||'';inputs[2].value=item.location||'';inputs[3].value=item.dates||'';});
+      add(data.projects||[], 'tmpl-prj','projects', (item)=>{const last=document.querySelector('#projects .prj-item:last-child');const inputs=last.querySelectorAll('input');inputs[0].value=item.name||'';inputs[1].value=item.tech||'';inputs[2].value=item.link||'';last.querySelector('textarea').value=(item.bullets||[]).join('\n');});
+      add(data.certifications||[], 'tmpl-cert','certifications', (item)=>{const last=document.querySelector('#certifications .cert-item:last-child');last.querySelector('input').value=item||'';});
+      add(data.extras||[], 'tmpl-extra','extras', (item)=>{const last=document.querySelector('#extras .extra-item:last-child');last.querySelector('input').value=item||'';});
+      document.getElementById('theme').value = pref?.theme || 'modern';
+      document.getElementById('font').value = pref?.font || 'Inter';
+      document.getElementById('dark').checked = !!pref?.dark;
+      applyTheme(document.getElementById('theme').value, document.getElementById('dark').checked);
+      setFont(document.getElementById('font').value);
+    }
+    const addBtn = (id, tmplId, containerId) => {
+      document.getElementById(id).addEventListener('click', () => {
+        const t = document.getElementById(tmplId);
+        const node = t.content.cloneNode(true);
+        document.getElementById(containerId).appendChild(node);
+        bindRemovers();
+        renderPreview(collect());
+      });
+    };
+    function bindRemovers(){
+      document.querySelectorAll('.remove').forEach(btn=>{btn.onclick=()=>btn.parentElement.remove();});
+    }
+    addBtn('add-exp','tmpl-exp','experiences');
+    addBtn('add-edu','tmpl-edu','education');
+    addBtn('add-prj','tmpl-prj','projects');
+    addBtn('add-cert','tmpl-cert','certifications');
+    addBtn('add-extra','tmpl-extra','extras');
+    bindRemovers();
+    document.getElementById('theme').addEventListener('change',()=>applyTheme(document.getElementById('theme').value, document.getElementById('dark').checked));
+    document.getElementById('font').addEventListener('change',()=>setFont(document.getElementById('font').value));
+    document.getElementById('dark').addEventListener('change',()=>applyTheme(document.getElementById('theme').value, document.getElementById('dark').checked));
+    function showToast(msg){
+      let t=document.createElement('div');
+      t.className='toast';
+      t.textContent=msg;
+      Object.assign(t.style,{position:'fixed',right:'16px',bottom:'16px',background:'var(--surface)',color:'var(--text)',border:'1px solid var(--border)',boxShadow:'0 8px 20px rgba(16,24,40,.12)',padding:'10px 12px',borderRadius:'10px',zIndex:'1000'});
+      document.body.appendChild(t);
+      setTimeout(()=>{t.style.opacity='0'; t.style.transition='opacity .3s';},1500);
+      setTimeout(()=>{t.remove();},1900);
+    }
+    document.getElementById('save').addEventListener('click',()=>{saveData(collect()); showToast('Saved');});
+    document.getElementById('clear').addEventListener('click',()=>{localStorage.removeItem('cv_data'); showToast('Cleared'); location.reload();});
+    const genBtn=document.querySelector('#cv-form .primary');
+    function setLoading(on){if(on){genBtn.disabled=true;genBtn.dataset.text=genBtn.textContent;genBtn.textContent='Generating...';genBtn.setAttribute('aria-busy','true');}else{if(genBtn.dataset.text){genBtn.textContent=genBtn.dataset.text;}genBtn.disabled=false;genBtn.removeAttribute('aria-busy');}}
+    function collect(){
+      const v = name=>document.querySelector(`[name="${name}"]`).value.trim();
+      const skills = v('skills').split('\n').map(s=>s.trim()).filter(Boolean);
+      const languages = v('languages').split('\n').map(s=>s.trim()).filter(Boolean);
+      const experiences = Array.from(document.querySelectorAll('.exp-item')).map(item=>{
+        const inputs=item.querySelectorAll('input');
+        const bullets=item.querySelector('textarea').value.split('\n').map(s=>s.trim()).filter(Boolean);
+        return {title:inputs[0].value.trim(),company:inputs[1].value.trim(),location:inputs[2].value.trim(),dates:inputs[3].value.trim(),bullets};
+      });
+      const education = Array.from(document.querySelectorAll('.edu-item')).map(item=>{
+        const inputs=item.querySelectorAll('input');
+        return {degree:inputs[0].value.trim(),institution:inputs[1].value.trim(),location:inputs[2].value.trim(),dates:inputs[3].value.trim()};
+      });
+      const projects = Array.from(document.querySelectorAll('.prj-item')).map(item=>{
+        const inputs=item.querySelectorAll('input');
+        const bullets=item.querySelector('textarea').value.split('\n').map(s=>s.trim()).filter(Boolean);
+        return {name:inputs[0].value.trim(),tech:inputs[1].value.trim(),link:inputs[2].value.trim(),bullets};
+      });
+      const certifications = Array.from(document.querySelectorAll('.cert-item')).map(item=>item.querySelector('input').value.trim()).filter(Boolean);
+      const extras = Array.from(document.querySelectorAll('.extra-item')).map(item=>item.querySelector('input').value.trim()).filter(Boolean);
+      const templateSel = document.querySelector('input[name="template"]:checked');
+      const template = templateSel ? templateSel.value : 'sidebar';
+      return {name:v('name'),job_title:v('job_title'),phone:v('phone'),email:v('email'),location:v('location'),linkedin:v('linkedin'),github:v('github'),website:v('website'),summary:v('summary'),skills,languages,experiences,education,projects,certifications,extras,references:v('references'),template};
+    }
+    async function generateDocx(data){
+      const { Document, Paragraph, TextRun, HeadingLevel, Packer } = window.docx;
+      const children = [];
+      children.push(new Paragraph({text:'CURRICULUM VITAE (CV)',heading:HeadingLevel.HEADING_1}));
+      children.push(new Paragraph({children:[new TextRun({text:(data.name||'').toUpperCase(),bold:true,size:36})]}));
+      if(data.job_title){children.push(new Paragraph({text:data.job_title}))}
+      const contacts = ['phone','email','location','linkedin','github','website'].map(k=>data[k]).filter(Boolean).join(' | ');
+      if(contacts){children.push(new Paragraph({text:contacts}))}
+      if(data.summary){children.push(new Paragraph({text:'SUMMARY',heading:HeadingLevel.HEADING_2}));children.push(new Paragraph({text:data.summary}))}
+      if(data.skills?.length){children.push(new Paragraph({text:'SKILLS',heading:HeadingLevel.HEADING_2}));data.skills.forEach(s=>children.push(new Paragraph({text:'• '+s})))}
+      if(data.experiences?.length){children.push(new Paragraph({text:'WORK EXPERIENCE',heading:HeadingLevel.HEADING_2}));
+        data.experiences.forEach(exp=>{const head=[exp.title,exp.company].filter(Boolean).join(' | ');children.push(new Paragraph({children:[new TextRun({text:head,bold:true})]}));const meta=[exp.location,exp.dates].filter(Boolean).join(' | ');if(meta) children.push(new Paragraph({text:meta}));(exp.bullets||[]).forEach(b=>children.push(new Paragraph({text:'• '+b})));})}
+      if(data.education?.length){children.push(new Paragraph({text:'EDUCATION',heading:HeadingLevel.HEADING_2}));
+        data.education.forEach(ed=>{const head=[ed.degree,ed.institution].filter(Boolean).join(' | ');children.push(new Paragraph({children:[new TextRun({text:head,bold:true})]}));const meta=[ed.location,ed.dates].filter(Boolean).join(' | ');if(meta) children.push(new Paragraph({text:meta}));})}
+      if(data.projects?.length){children.push(new Paragraph({text:'PROJECTS',heading:HeadingLevel.HEADING_2}));
+        data.projects.forEach(pr=>{children.push(new Paragraph({children:[new TextRun({text:pr.name||'Project',bold:true})]}));if(pr.tech) children.push(new Paragraph({text:pr.tech}));(pr.bullets||[]).forEach(b=>children.push(new Paragraph({text:'• '+b})));if(pr.link) children.push(new Paragraph({text:pr.link}));})}
+      if(data.certifications?.length){children.push(new Paragraph({text:'CERTIFICATIONS',heading:HeadingLevel.HEADING_2}));data.certifications.forEach(c=>children.push(new Paragraph({text:c})))}
+      if(data.extras?.length){children.push(new Paragraph({text:'EXTRAS',heading:HeadingLevel.HEADING_2}));data.extras.forEach(e=>children.push(new Paragraph({text:e})))}
+      if(data.languages?.length){children.push(new Paragraph({text:'LANGUAGES',heading:HeadingLevel.HEADING_2}));children.push(new Paragraph({text:data.languages.join(', ')}))}
+      if(data.references){children.push(new Paragraph({text:'REFERENCES',heading:HeadingLevel.HEADING_2}));children.push(new Paragraph({text:data.references}))}
+      const doc = new Document({sections:[{children}]});
+      const blob = await Packer.toBlob(doc);
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${data.name||'cv'}.docx`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+    function generatePdf(data){
+      const { jsPDF } = window.jspdf; const pdf = new jsPDF();
+      const margin=15; const pageW=pdf.internal.pageSize.getWidth(); const pageH=pdf.internal.pageSize.getHeight(); const width=pageW-2*margin;
+      let y=margin;
+      const set=(size=11,bold=false)=>{pdf.setFont('Helvetica', bold?'bold':'normal'); pdf.setFontSize(size);} 
+      const ensure=(need=7)=>{if(y+need>pageH-margin){pdf.addPage(); y=margin;}}
+      const write=(text,size=11,bold=false,gap=7)=>{set(size,bold); const lines=pdf.splitTextToSize(text,width); lines.forEach(l=>{ensure(gap); pdf.text(l,margin,y); y+=gap;});}
+      const bullet=(text)=>{set(11,false); const lines=pdf.splitTextToSize(text,width-6); lines.forEach(l=>{ensure(7); pdf.text('•',margin,y); pdf.text(l,margin+6,y); y+=7;});}
+      const section=(title)=>{ensure(12); set(12,true); pdf.text(title.toUpperCase(),margin,y); y+=8;}
+      set(14,true); write('Curriculum Vitae (CV)',14,true,9);
+      set(16,true); write((data.name||'').toUpperCase(),16,true,10);
+      if(data.job_title) write(data.job_title,12,false,8);
+      const contacts=['phone','email','location','linkedin','github','website'].map(k=>data[k]).filter(Boolean).join(' | ');
+      if(contacts) write(contacts,11,false,7);
+      if(data.summary){section('Summary'); write(data.summary,11,false,7);}     
+      if(data.skills?.length){section('Skills'); data.skills.forEach(s=>bullet(s));}
+      if(data.experiences?.length){section('Work Experience'); data.experiences.forEach(exp=>{const head=[exp.title,exp.company].filter(Boolean).join(' | '); write(head,11,true,8); const meta=[exp.location,exp.dates].filter(Boolean).join(' | '); if(meta) write(meta,11,false,7); (exp.bullets||[]).forEach(b=>bullet(b));});}
+      if(data.education?.length){section('Education'); data.education.forEach(ed=>{const head=[ed.degree,ed.institution].filter(Boolean).join(' | '); write(head,11,true,8); const meta=[ed.location,ed.dates].filter(Boolean).join(' | '); if(meta) write(meta,11,false,7);});}
+      if(data.projects?.length){section('Projects'); data.projects.forEach(pr=>{write(pr.name||'Project',11,true,8); if(pr.tech) write(pr.tech,11,false,7); (pr.bullets||[]).forEach(b=>bullet(b)); if(pr.link) write(pr.link,11,false,7);});}
+      if(data.certifications?.length){section('Certifications'); data.certifications.forEach(c=>write(c,11,false,7));}
+      if(data.extras?.length){section('Extras'); data.extras.forEach(e=>write(e,11,false,7));}
+      if(data.languages?.length){section('Languages'); write(data.languages.join(', '),11,false,7);} 
+      if(data.references){section('References'); write(data.references,11,false,7);}    
+      pdf.save(`${data.name||'cv'}.pdf`);
+    }
+    async function postToServer(data, fmt){
+      const fd = new FormData();
+      const set = (k,v)=>fd.append(k, v||'');
+      ['name','job_title','phone','email','location','linkedin','github','website','summary','references'].forEach(k=>set(k,data[k]||''));
+      set('skills', (data.skills||[]).join('\n'));
+      set('languages', (data.languages||[]).join('\n'));
+      set('experiences_json', JSON.stringify(data.experiences||[]));
+      set('education_json', JSON.stringify(data.education||[]));
+      set('projects_json', JSON.stringify(data.projects||[]));
+      set('certifications_json', JSON.stringify(data.certifications||[]));
+      set('extras_json', JSON.stringify(data.extras||[]));
+      set('output_format', fmt);
+      set('template', data.template||'sidebar');
+      const themeName=document.getElementById('theme').value; const accent= (themes[themeName]||themes.modern).primary; set('accent', accent);
+      const base = '';
+      const res = await fetch(base + '/generate', {method:'POST', body:fd});
+      if(!res.ok) throw new Error('Server generation failed');
+      const blob = await res.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${data.name||'cv'}.${fmt}`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+    document.getElementById('cv-form').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      setLoading(true);
+      try{
+        const data = collect();
+        const fmt = document.querySelector('input[name="output_format"]:checked').value;
+        if(fmt==='docx'){
+          try{await postToServer(data, 'docx');}
+          catch(err){ if(window.docx&&window.docx.Packer){ await generateDocx(data);} else { alert('DOCX generation failed. Start the server (python app.py) or check internet.'); } }
+        }else{
+          try{await postToServer(data, 'pdf');}
+          catch{generatePdf(data);} 
+        }
+      }finally{
+        setLoading(false);
+      }
+    });
+    document.getElementById('cv-form').addEventListener('input', ()=>{renderPreview(collect())});
+    applyTheme('modern', false);
+    setFont('Inter');
+    loadData();
+    renderPreview(collect());
+  </script>
+</body>
+</html>
